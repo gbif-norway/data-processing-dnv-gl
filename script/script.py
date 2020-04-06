@@ -8,6 +8,7 @@ pivot_data = pd.ExcelFile('barentshavet_sor_x.xlsx').parse('Biology_Report.xlsx'
 # def reverse_occurrence_pivot(pivot_data): # Changes data to 1 record per row, not a grid
 occurrence = pd.melt(pivot_data, id_vars=('Species', 'Family'), var_name='Station', value_name='individualCount')
 occurrence.dropna(inplace=True)
+occurrence['individualCount'] = occurrence['individualCount'].astype(int)
 
 # def add_uuids(occurrence):
 occurrence['occurrenceID'] = [uuid.uuid4() for x in range(len(occurrence.index))]
@@ -26,6 +27,7 @@ event.drop_duplicates(inplace=True)
 event = pd.merge(event, stations_report, how='left', on='Station')
 
 # def dwcify_columns(occurrence, event):
+occurrence['basisOfRecord'] = 'MaterialSample'
 occurrence.rename(columns={'Species': 'scientificName', 'Family': 'family'}, inplace=True)
 occurrence.drop(columns='Station', inplace=True)
 event['locationRemarks'] = 'station ' + event['Station'] + ', direction from station: ' + event['Direction'].astype(str) + ', distance from station: ' + event['Distance'].astype(str)
@@ -34,7 +36,8 @@ event['waterBody'] = 'South Barents Sea'
 event['maximumDepthInMeters'] = event['Depth']
 event.rename(columns={'Installation': 'locality', 'Depth': 'minimumDepthInMeters', 'WGS84E': 'decimalLongitude', 'WGS84N': 'decimalLatitude'}, inplace=True)
 
-
+event.to_csv('event.csv')
+occurrence.to_csv('occurrence.csv')
 import pdb; pdb.set_trace()
 
 
