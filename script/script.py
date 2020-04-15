@@ -18,3 +18,4 @@ for current_sea in seas:
     event.to_csv('result_files/' + current_sea + '_event.csv')
     occurrence.to_csv('result_files/' + current_sea + '_occurrence.csv')
 
+import pdb; pdb.set_trace()
