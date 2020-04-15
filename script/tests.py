@@ -5,20 +5,6 @@ import numpy as np
 import uuid
 
 class TestDNVGLMODToDwC(unittest.TestCase):
-    def test_reverse_occurrence_pivot(self):
-        test_df = pd.DataFrame({'Species': ['A', 'B', 'C'],
-                                'Family': ['D', 'E', 'F'],
-                                '2008 R10-1 1': [1, None, 2],
-                                '2010 NV9 5': [None, 3, None],
-                                '2011 EI12 1': [4, 5, 6]})
-        result = reverse_occurrence_pivot(test_df)
-        df_cols = {'Species': ['A', 'C', 'B', 'A', 'B', 'C'],
-                   'Family': ['D', 'F', 'E', 'D', 'E', 'F'],
-                   'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1', '2011 EI12 1', '2011 EI12 1'],
-                   'individualCount': [1, 2, 3, 4, 5, 6]}
-        expected_result = pd.DataFrame(df_cols)
-        np.testing.assert_array_equal(result.values, expected_result.values)
-
     def test_create_event_sheet(self):
         occurrence = pd.DataFrame({'Station': ['2008 R10-1 1', '2008 R10-1 1', '2008 R10-1 2', '2010 NV9 5'],
                                    'eventID': [10, 10, 11, 12],
@@ -35,6 +21,36 @@ class TestDNVGLMODToDwC(unittest.TestCase):
                                  'decimalLatitude': [70, 70, 80],
                                  'decimalLongitude': [20, 20, 30]})
         np.testing.assert_array_equal(events.values, expected.values)
+
+
+class TestReverseOccurrencePivot(unittest.TestCase):
+    def test_does_not_create_records_for_null_individual_counts(self):
+        test_df = pd.DataFrame({'Species': ['A', 'B', 'C'],
+                                'Family': ['D', 'E', 'F'],
+                                '2008 R10-1 1': [1, None, 2],
+                                '2010 NV9 5': [None, 3, None],
+                                '2011 EI12 1': [4, 5, 6]})
+        result = reverse_occurrence_pivot(test_df)
+        df_cols = {'Species': ['A', 'C', 'B', 'A', 'B', 'C'],
+                   'Family': ['D', 'F', 'E', 'D', 'E', 'F'],
+                   'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1', '2011 EI12 1', '2011 EI12 1'],
+                   'individualCount': [1, 2, 3, 4, 5, 6]}
+        expected_result = pd.DataFrame(df_cols)
+        np.testing.assert_array_equal(result.values, expected_result.values)
+
+    def test_does_not_remove_rows_with_null_family(self):
+        test_df = pd.DataFrame({'Species': ['A', 'B', 'C'],
+                                'Family': [None, None, 'F'],
+                                '2008 R10-1 1': [1, None, 2],
+                                '2010 NV9 5': [None, 3, None],
+                                '2011 EI12 1': [4, 5, 6]})
+        result = reverse_occurrence_pivot(test_df)
+        df_cols = {'Species': ['A', 'C', 'B', 'A', 'B', 'C'],
+                   'Family': [None, 'F', None, None, None, 'F'],
+                   'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1', '2011 EI12 1', '2011 EI12 1'],
+                   'individualCount': [1, 2, 3, 4, 5, 6]}
+        expected_result = pd.DataFrame(df_cols)
+        np.testing.assert_array_equal(result.values, expected_result.values)
 
 class TestAddUUIDs(unittest.TestCase):
     def setUp(self):
