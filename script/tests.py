@@ -4,20 +4,22 @@ import pandas as pd
 import numpy as np
 import uuid
 
-class TestDNVGLMODToDwC(unittest.TestCase):
-    def test_create_event_sheet(self):
+class TestCreateEventSheet(unittest.TestCase):
+    def test_creates_event_sheet(self):
         occurrence = pd.DataFrame({'Station': ['2008 R10-1 1', '2008 R10-1 1', '2008 R10-1 2', '2010 NV9 5'],
                                    'eventID': [10, 10, 11, 12],
                                    'Species': ['A', 'B', 'A', 'A']})
         stations_report = pd.DataFrame({'Station': ['R10-1', 'NV9'],
                                         'decimalLatitude': [70, 80],
                                         'decimalLongitude': [20, 30]})
-        events = create_event_sheet(occurrence, stations_report)
+        events = create_event_sheet(occurrence, stations_report, 'Barents Sea South')
         expected = pd.DataFrame({'eventID': [10, 11, 12],
                                  'Station': ['R10-1', 'R10-1', 'NV9'],
                                  'eventRemarks': ['grab 1', 'grab 2', 'grab 5'],
                                  'year': ['2008', '2008', '2010'],
                                  'month': ['4', '4', '4'],
+                                 'geodeticDatum': 'WGS84',
+                                 'waterBody': 'Barents Sea South',
                                  'decimalLatitude': [70, 70, 80],
                                  'decimalLongitude': [20, 20, 30]})
         np.testing.assert_array_equal(events.values, expected.values)
