@@ -17,7 +17,7 @@ class TestCreateEventSheet(unittest.TestCase):
                                  'Station': ['R10-1', 'R10-1', 'NV9'],
                                  'eventRemarks': ['grab 1', 'grab 2', 'grab 5'],
                                  'year': ['2008', '2008', '2010'],
-                                 'month': ['4', '4', '4'],
+                                 'eventDate': ['2008-05/2008-06', '2008-05/2008-06', '2010-05/2010-06']
                                  'geodeticDatum': 'WGS84',
                                  'waterBody': 'Barents Sea South',
                                  'decimalLatitude': [70, 70, 80],

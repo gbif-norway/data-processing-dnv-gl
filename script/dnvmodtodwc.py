@@ -23,6 +23,7 @@ def create_event_sheet(occurrence, stations_report, current_sea):
         'waterBody': current_sea
     })
     event.drop_duplicates(inplace=True)
+    event['eventDate'] = event['year'].apply(lambda x: '{}-05/{}-06'.format(x, x))
     return pd.merge(event, stations_report, how='left', on='Station')
 
 def dwcify_columns(occurrence, event):
