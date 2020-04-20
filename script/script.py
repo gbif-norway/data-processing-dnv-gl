@@ -6,8 +6,13 @@ occurrence_dfs = []
 event_dfs = []
 for current_sea in seas:
     file_sea_name = current_sea.lower().replace(' ', '_')
+
     stations_report = pd.ExcelFile('source_files/' + file_sea_name + '_stations.xlsx').parse('Stations_Report.xlsx')
+    stations_report.fillna('', inplace=True)
+
     pivot_data = pd.ExcelFile('source_files/' + file_sea_name + '.xlsx').parse('Biology_Report.xlsx')
+    pivot_data.fillna('', inplace=True)
+
     occurrence = reverse_occurrence_pivot(pivot_data)
     add_uuids(occurrence)
     event = create_event_sheet(occurrence, stations_report, current_sea)
