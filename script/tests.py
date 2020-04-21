@@ -130,19 +130,19 @@ class TestAddUUIDs(unittest.TestCase):
     def test_creates_unique_uuids_in_occurrenceID_column(self):
         self.assertEqual(len(set(self.result['occurrenceID'].values)), len(self.result))
 
-    def creates_eventID_column(self):
+    def test_creates_eventID_column(self):
         self.assertTrue('eventID' in self.result.columns)
 
-    def creates_uuids_in_eventID_column(self):
+    def test_creates_uuids_in_eventID_column(self):
         self.assertTrue(isinstance(self.result['eventID'][0], uuid.UUID))
         self.assertTrue(isinstance(self.result['eventID'][1], uuid.UUID))
 
-    def uses_same_uuid_for_same_events(self):
+    def test_uses_same_uuid_for_same_events(self):
         self.assertEqual(self.result['eventID'][0], self.result['eventID'][1])
 
-    def has_different_uuids_for_different_events(self):
-        self.assertNotEqual(self.result['eventID'][0], self.result['eventID'[2]])
-        self.assertNotEqual(self.result['eventID'][0], self.result['eventID'[2]])
+    def test_has_different_uuids_for_different_events(self):
+        self.assertNotEqual(self.result['eventID'][0], self.result['eventID'][2])
+        self.assertNotEqual(self.result['eventID'][0], self.result['eventID'][2])
         self.assertEqual(len(self.result['eventID'].values) - 1, len(set(self.result['eventID'].values)))
 
 if __name__ == '__main__':
