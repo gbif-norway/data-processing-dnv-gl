@@ -1,6 +1,6 @@
-FROM andrejreznik/python-gdal:stable
+FROM python:3.8
 
 RUN apt-get update && \
     apt-get install -y vim
 
-RUN pip install --no-cache-dir pandas xlrd
+RUN pip install --no-cache-dir pandas xlrd pyproj
