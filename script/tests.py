@@ -20,40 +20,8 @@ class TestCreateEventSheet(unittest.TestCase):
 
 
 class TestSetLocationData(unittest.TestCase):
-    def test_adds_correct_geodetic_datums_when_wgs84_unavailable(self):
-        event = pd.DataFrame({'Station': ['J1', 'J2', 'J3'],
-                              'Depth': [100, 101, 102],
-                              'Direction': [30, 60, 90],
-                              'Distance': [1, 2, 3],
-                              'Installation': ['Jeba', 'Jeba', 'Jeba'],
-                              'WGS84N': [70, None, None],
-                              'WGS84E': [20, None, None],
-                              'UTM33N': [8000000, 8000001, 8000002],
-                              'UTM33E': [730000, 730001, 730002],
-                              'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
-                              'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': ''
-                              })
-        events = set_location_data(event, 'UK Shelf')
-        expected = pd.DataFrame({'Station': ['J1', 'J2', 'J3'],
-                                 'geodeticDatum': ['WGS84', 'EPSG:32633', 'EPSG:32633'],
-                                 'waterBody': ['UK Shelf', 'UK Shelf', 'UK Shelf'],
-                                 'decimalLatitude': [70, 8000001, 8000002],
-                                 'decimalLongitude': [20, 730001, 730002],
-                                 'verbatimLatitude': [8000000, 8000001, 8000002],
-                                 'verbatimLongitude': [730000, 730001, 730002],
-                                 'verbatimSrS': ['EPSG:32633', 'EPSG:32633', 'EPSG:32633'],
-                                 'verbatimCoordinateSystem': ['UTM', 'UTM', 'UTM'],
-                                 'maximumDepthInMeters': [100, 101, 102],
-                                 'minimumDepthInMeters': [100, 101, 102],
-                                 'locality': ['Jeba', 'Jeba', 'Jeba'],
-                                 'locationRemarks': ['station J1, direction from station: 30, distance from station: 1',
-                                                     'station J2, direction from station: 60, distance from station: 2',
-                                                     'station J3, direction from station: 90, distance from station: 3']
-                                 })
-        pd._testing.assert_frame_equal(events.reset_index(), expected.reset_index(), check_like=True, check_dtype=False)
-
-    def test_creates_sensible_location_remarks(self):
-        event = pd.DataFrame({'Station': ['J1', 'J2', 'J3'],
+    def setUp(self):
+        self.event = pd.DataFrame({'Station': ['J1', 'J2', 'J3'],
                               'Depth': [100, 101, 102],
                               'Direction': pd.Series([30, None, 90], dtype=object),
                               'Distance': pd.Series([1, None, 3], dtype=object),
@@ -65,25 +33,34 @@ class TestSetLocationData(unittest.TestCase):
                               'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
                               'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': ''
                               })
-        events = set_location_data(event, 'UK Shelf')
-        expected = pd.DataFrame({'Station': ['J1', 'J2', 'J3'],
-                                 'geodeticDatum': ['WGS84', 'EPSG:32633', 'EPSG:32633'],
-                                 'waterBody': ['UK Shelf', 'UK Shelf', 'UK Shelf'],
-                                 'decimalLatitude': [70, 8000001, 8000002],
-                                 'decimalLongitude': [20, 730001, 730002],
-                                 'verbatimLatitude': [8000000, 8000001, 8000002],
-                                 'verbatimLongitude': [730000, 730001, 730002],
-                                 'verbatimSrS': ['EPSG:32633', 'EPSG:32633', 'EPSG:32633'],
-                                 'verbatimCoordinateSystem': ['UTM', 'UTM', 'UTM'],
-                                 'maximumDepthInMeters': [100, 101, 102],
-                                 'minimumDepthInMeters': [100, 101, 102],
-                                 'locality': ['Jeba', 'Jeba', 'Jeba'],
-                                 'locationRemarks': ['station J1, direction from station: 30, distance from station: 1',
-                                                     'station J2',
-                                                     'station J3, direction from station: 90, distance from station: 3']
-                                 })
-        pd._testing.assert_frame_equal(events.reset_index(), expected.reset_index(), check_like=True, check_dtype=False)
+        set_location_data(self.event, 'UK Shelf')
 
+    def test_waterbody(self):
+        np.testing.assert_array_equal(self.event['waterBody'].values, ['UK Shelf', 'UK Shelf', 'UK Shelf'])
+
+    def test_it_assigns_correct_geodetic_datums(self):
+        np.testing.assert_array_equal(self.event['geodeticDatum'].values, ['WGS84', 'EPSG:32633', 'EPSG:32633'])
+
+    def test_it_creates_sensible_location_remarks(self):
+        expected = ['station J1, direction from station: 30, distance from station: 1', 'station J2',
+                    'station J3, direction from station: 90, distance from station: 3']
+        np.testing.assert_array_equal(self.event['locationRemarks'].values, expected)
+
+    def test_it_assigns_max_min_depth(self):
+        np.testing.assert_array_equal(self.event['maximumDepthInMeters'].values, [100, 101, 102])
+        np.testing.assert_array_equal(self.event['minimumDepthInMeters'].values, [100, 101, 102])
+
+    def test_it_adds_station_as_locality(self):
+        np.testing.assert_array_equal(self.event['locality'].values, ['Jeba', 'Jeba', 'Jeba'])
+
+    def test_it_assigns_correct_verbatim_data(self):
+        np.testing.assert_array_equal(self.event['verbatimLatitude'].values, [8000000, 8000001, 8000002])
+        np.testing.assert_array_equal(self.event['verbatimLongitude'].values, [730000, 730001, 730002])
+        np.testing.assert_array_equal(self.event['verbatimSrS'].values, ['EPSG:32633', 'EPSG:32633', 'EPSG:32633'])
+        np.testing.assert_array_equal(self.event['verbatimCoordinateSystem'].values, ['UTM', 'UTM', 'UTM'])
+
+    def test_conversion_from_utm(self):
+        pass
 
 class TestReverseOccurrencePivot(unittest.TestCase):
     def test_does_not_create_records_for_null_individual_counts(self):
@@ -164,6 +141,7 @@ class TestSetTaxonomyData(unittest.TestCase):
 
     def test_it_assigns_family_overrides(self):
         np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'I'])
+
 
 
 if __name__ == '__main__':
