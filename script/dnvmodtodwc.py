@@ -41,8 +41,10 @@ def set_location_data(event, current_sea):
     event.loc[pd.isnull(event['decimalLatitude']), 'decimalLatitude'] = event.loc[pd.isnull(event['decimalLatitude']), 'verbatimLatitude']
     return event
 
-def dwcify_columns(occurrence, event):
+def set_taxonomy_data(occurrence):
     occurrence['basisOfRecord'] = 'MaterialSample'
     occurrence.rename(columns={'Species': 'scientificName', 'Family': 'family'}, inplace=True)
-    #occurrence.drop(columns='Station', inplace=True)
+    occurrence['class'] = ''
+    occurrence.loc[occurrence['scientificName'] == 'Oligochaeta', 'class'] = 'Clitellata'
+    occurrence.loc[occurrence['scientificName'] == 'Grania', 'family'] = 'Enchytraeidae'
 

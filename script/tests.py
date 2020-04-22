@@ -1,5 +1,5 @@
 import unittest
-from dnvmodtodwc import reverse_occurrence_pivot, add_uuids, create_event_sheet, dwcify_columns, set_location_data
+from dnvmodtodwc import reverse_occurrence_pivot, add_uuids, create_event_sheet, set_taxonomy_data, set_location_data
 import pandas as pd
 import numpy as np
 import uuid
@@ -144,6 +144,27 @@ class TestAddUUIDs(unittest.TestCase):
         self.assertNotEqual(self.result['eventID'][0], self.result['eventID'][2])
         self.assertNotEqual(self.result['eventID'][0], self.result['eventID'][2])
         self.assertEqual(len(self.result['eventID'].values) - 1, len(set(self.result['eventID'].values)))
+
+
+class TestSetTaxonomyData(unittest.TestCase):
+    def setUp(self):
+        self.occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'I']})
+        set_taxonomy_data(self.occurrences)
+
+    def test_it_sets_basis_of_record(self):
+        np.testing.assert_array_equal(self.occurrences['basisOfRecord'], ['MaterialSample' for i in range(5)])
+
+    def test_it_renames_columns_and_adds_class_column(self):
+        self.assertTrue('scientificName' in self.occurrences.columns and 'species' not in self.occurrences.columns)
+        self.assertTrue('family' in self.occurrences.columns and 'Family' not in self.occurrences.columns)
+        self.assertTrue('class' in self.occurrences.columns)
+
+    def test_it_assigns_class_overrides(self):
+        np.testing.assert_array_equal(self.occurrences['class'], ['', '', '', 'Clitellata', ''])
+
+    def test_it_assigns_family_overrides(self):
+        np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'I'])
+
 
 if __name__ == '__main__':
     unittest.main()
