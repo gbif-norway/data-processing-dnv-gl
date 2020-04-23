@@ -1,8 +1,41 @@
 import unittest
-from dnvmodtodwc import reverse_occurrence_pivot, add_uuids, create_event_sheet, set_taxonomy_data, set_location_data
+from dnvmodtodwc import reverse_occurrence_pivot, add_uuids, create_event_sheet, set_taxonomy_data, set_location_data, get_event_and_occurrence
 import pandas as pd
 import numpy as np
 import uuid
+
+
+class TestGetEventAndOccurrence(unittest.TestCase):
+    def test_wrapper_function(self):
+        pivot_data = pd.DataFrame({'Species': ['A', 'B', 'C'],
+                                 'Family': ['D', 'E', 'F'],
+                                 '2008 R10-1 1': [1, None, 2],
+                                 '2010 NV9 5': [None, 3, None],
+                                 '2011 EI12 1': [4, 5, 6]})
+        stations_report = pd.DataFrame({
+                                  'Installation':['Alpha','Beta','Theta'],
+                                  'Station':['R10-1','NV9','EI12'],
+                                  'Direction':[0,0,0],
+                                  'Distance':[0,0,0],
+                                  'Depth':[387,389,377],
+                                  'UTM31E':[0,0,0],
+                                  'UTM31N':[0,0,0],
+                                  'UTM32E':[0,0,0],
+                                  'UTM32N':[0,0,0],
+                                  'UTM34E':[0,0,0],
+                                  'UTM34N':[0,0,0],
+                                  'UTM33E':[484774,485234,486580],
+                                  'UTM33N':[7996294,7995873,7997461],
+                                  'UTM35E':[0,0,0],
+                                  'UTM35N':[0,0,0],
+                                  'UTM36E':[0,0,0],
+                                  'UTM36N':[0,0,0],
+                                  'ED50E':[20.5570526,20.57052155,20.60937],
+                                  'ED50N':[72.06354198,72.05979779,72.07411563],
+                                  'WGS84E':[20.55545089,None,20.60777047],
+                                  'WGS84N':[72.06370613,None,72.07428065]})
+        event, occurrence = get_event_and_occurrence(pivot_data, stations_report, 'UK Shelf')
+
 
 class TestCreateEventSheet(unittest.TestCase):
     def test_creates_a_single_record_per_event_with_correct_dates_and_grab_numbers(self):
@@ -28,14 +61,14 @@ class TestSetLocationData(unittest.TestCase):
                               'Installation': ['Jeba', 'Jeba', 'Jeba'],
                               'WGS84N': [70, None, None],
                               'WGS84E': [20, None, None],
-                              'UTM33N': [8000000, 8000001, 8000002],
-                              'UTM33E': [730000, 730001, 730002],
+                              'UTM33N': [8000000, 8220514.84, 8220612.92],
+                              'UTM33E': [730000, 795102.30, 795082.28],
                               'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
                               'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': ''
                               })
         set_location_data(self.event, 'UK Shelf')
 
-    def test_waterbody(self):
+    def test_creates_waterbody(self):
         np.testing.assert_array_equal(self.event['waterBody'].values, ['UK Shelf', 'UK Shelf', 'UK Shelf'])
 
     def test_it_assigns_correct_geodetic_datums(self):
@@ -54,13 +87,34 @@ class TestSetLocationData(unittest.TestCase):
         np.testing.assert_array_equal(self.event['locality'].values, ['Jeba', 'Jeba', 'Jeba'])
 
     def test_it_assigns_correct_verbatim_data(self):
-        np.testing.assert_array_equal(self.event['verbatimLatitude'].values, [8000000, 8000001, 8000002])
-        np.testing.assert_array_equal(self.event['verbatimLongitude'].values, [730000, 730001, 730002])
+        np.testing.assert_array_equal(self.event['verbatimLatitude'].values, [8000000, 8220514.84, 8220612.92])
+        np.testing.assert_array_equal(self.event['verbatimLongitude'].values, [730000, 795102.30, 795082.28])
         np.testing.assert_array_equal(self.event['verbatimSrS'].values, ['EPSG:32633', 'EPSG:32633', 'EPSG:32633'])
         np.testing.assert_array_equal(self.event['verbatimCoordinateSystem'].values, ['UTM', 'UTM', 'UTM'])
 
     def test_conversion_from_utm(self):
+        # These tests fail
+        #np.testing.assert_array_equal(self.event['decimalLatitude'].values, [70, 73.86192111, 73.86281664])
+        #np.testing.assert_array_equal(self.event['decimalLongitude'].values, [20, 24.5469315, 24.54679897])
         pass
+
+    def test_does_not_break_if_no_conversion_needed(self):
+        event = pd.DataFrame({'Station': ['J1', 'J2'],
+                              'Depth': [100, 101],
+                              'Direction': [0, 30],
+                              'Distance': [10, 20],
+                              'Installation': ['Jeba', 'Jeba'],
+                              'WGS84N': [70, 80],
+                              'WGS84E': [20, 10],
+                              'UTM33N': [8000000, 8],
+                              'UTM33E': [730000, 7],
+                              'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
+                              'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': ''
+                              })
+        set_location_data(event, 'UK Shelf')
+        np.testing.assert_array_equal(event['decimalLatitude'].values, [70, 80])
+        np.testing.assert_array_equal(event['decimalLongitude'].values, [20, 10])
+
 
 class TestReverseOccurrencePivot(unittest.TestCase):
     def test_does_not_create_records_for_null_individual_counts(self):
