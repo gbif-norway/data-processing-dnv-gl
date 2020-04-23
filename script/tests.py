@@ -169,11 +169,11 @@ class TestAddUUIDs(unittest.TestCase):
 
 class TestSetTaxonomyData(unittest.TestCase):
     def setUp(self):
-        self.occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'I']})
+        self.occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Oligochaeta juv.', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'H', 'I']})
         set_taxonomy_data(self.occurrences)
 
     def test_it_sets_basis_of_record(self):
-        np.testing.assert_array_equal(self.occurrences['basisOfRecord'], ['MaterialSample' for i in range(5)])
+        np.testing.assert_array_equal(self.occurrences['basisOfRecord'], ['MaterialSample'] * 6)
 
     def test_it_renames_columns_and_adds_class_column(self):
         self.assertTrue('scientificName' in self.occurrences.columns and 'species' not in self.occurrences.columns)
@@ -181,10 +181,10 @@ class TestSetTaxonomyData(unittest.TestCase):
         self.assertTrue('class' in self.occurrences.columns)
 
     def test_it_assigns_class_overrides(self):
-        np.testing.assert_array_equal(self.occurrences['class'], ['', '', '', 'Clitellata', ''])
+        np.testing.assert_array_equal(self.occurrences['class'], ['', '', '', 'Clitellata', 'Clitellata', ''])
 
     def test_it_assigns_family_overrides(self):
-        np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'I'])
+        np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'H', 'I'])
 
 
 

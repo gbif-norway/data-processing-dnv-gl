@@ -25,6 +25,7 @@ def set_taxonomy_data(occurrence):
     occurrence.rename(columns={'Species': 'scientificName', 'Family': 'family'}, inplace=True)
     occurrence['class'] = ''
     occurrence.loc[occurrence['scientificName'] == 'Oligochaeta', 'class'] = 'Clitellata'
+    occurrence.loc[occurrence['scientificName'] == 'Oligochaeta juv.', 'class'] = 'Clitellata'
     occurrence.loc[occurrence['scientificName'] == 'Grania', 'family'] = 'Enchytraeidae'
 
 def create_event_sheet(occurrence, stations_report):
