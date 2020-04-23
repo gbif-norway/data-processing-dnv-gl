@@ -14,7 +14,7 @@ def reverse_occurrence_pivot(pivot_data): # Changes data to 1 record per row, no
     occurrence = pd.melt(pivot_data, id_vars=('Species', 'Family'), var_name='Station', value_name='individualCount')
     occurrence.dropna(inplace=True, subset=['individualCount'])
     occurrence['individualCount'] = occurrence['individualCount'].astype(int)
-    return occurrence
+    return occurrence[occurrence['individualCount'] > 0]
 
 def add_uuids(occurrence):
     occurrence['occurrenceID'] = [uuid.uuid4() for x in range(len(occurrence.index))]

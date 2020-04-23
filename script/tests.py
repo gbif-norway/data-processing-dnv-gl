@@ -18,20 +18,10 @@ class TestGetEventAndOccurrence(unittest.TestCase):
                                   'Direction':[0,0,0],
                                   'Distance':[0,0,0],
                                   'Depth':[387,389,377],
-                                  'UTM31E':[0,0,0],
-                                  'UTM31N':[0,0,0],
-                                  'UTM32E':[0,0,0],
-                                  'UTM32N':[0,0,0],
-                                  'UTM34E':[0,0,0],
-                                  'UTM34N':[0,0,0],
                                   'UTM33E':[484774,485234,486580],
                                   'UTM33N':[7996294,7995873,7997461],
-                                  'UTM35E':[0,0,0],
-                                  'UTM35N':[0,0,0],
-                                  'UTM36E':[0,0,0],
-                                  'UTM36N':[0,0,0],
-                                  'ED50E':[20.5570526,20.57052155,20.60937],
-                                  'ED50N':[72.06354198,72.05979779,72.07411563],
+                                  'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
+                                  'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': '',
                                   'WGS84E':[20.55545089,None,20.60777047],
                                   'WGS84N':[72.06370613,None,72.07428065]})
         event, occurrence = get_event_and_occurrence(pivot_data, stations_report, 'UK Shelf')
@@ -117,17 +107,17 @@ class TestSetLocationData(unittest.TestCase):
 
 
 class TestReverseOccurrencePivot(unittest.TestCase):
-    def test_does_not_create_records_for_null_individual_counts(self):
+    def test_does_not_create_records_for_null_or_zero_individual_counts(self):
         test_df = pd.DataFrame({'Species': ['A', 'B', 'C'],
                                 'Family': ['D', 'E', 'F'],
                                 '2008 R10-1 1': [1, None, 2],
                                 '2010 NV9 5': [None, 3, None],
-                                '2011 EI12 1': [4, 5, 6]})
+                                '2011 EI12 1': [4, 5, 0]})
         result = reverse_occurrence_pivot(test_df)
-        df_cols = {'Species': ['A', 'C', 'B', 'A', 'B', 'C'],
-                   'Family': ['D', 'F', 'E', 'D', 'E', 'F'],
-                   'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1', '2011 EI12 1', '2011 EI12 1'],
-                   'individualCount': [1, 2, 3, 4, 5, 6]}
+        df_cols = {'Species': ['A', 'C', 'B', 'A', 'B'],
+                   'Family': ['D', 'F', 'E', 'D', 'E'],
+                   'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1', '2011 EI12 1'],
+                   'individualCount': [1, 2, 3, 4, 5]}
         expected_result = pd.DataFrame(df_cols)
         np.testing.assert_array_equal(result.values, expected_result.values)
 
