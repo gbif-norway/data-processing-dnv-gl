@@ -22,24 +22,41 @@ class TestGetEventAndOccurrence(unittest.TestCase):
                                   'UTM33N':[7996294,7995873,7997461],
                                   'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
                                   'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': '',
-                                  'WGS84E':[20.55545089,None,20.60777047],
-                                  'WGS84N':[72.06370613,None,72.07428065]})
+                                  'WGS84E':[20.51, None, 20.61],
+                                  'WGS84N':[72.01, None, 72.07]})
         event, occurrence = get_event_and_occurrence(pivot_data, stations_report, 'UK Shelf')
+        expected_event_cols = ['eventID', 'Station', 'eventRemarks', 'year', 'eventDate', 'locality', 'minimumDepthInMeters', 'verbatimLongitude', 'verbatimLatitude', 'decimalLongitude', 'decimalLatitude', 'waterBody', 'geodeticDatum', 'locationRemarks', 'maximumDepthInMeters', 'verbatimCoordinateSystem', 'verbatimSrS']
+        np.testing.assert_array_equal(event.columns, expected_event_cols)
+        expected_occurrence_cols = ['scientificName', 'family', 'Station', 'individualCount', 'occurrenceID', 'eventID', 'basisOfRecord', 'class']
+        np.testing.assert_array_equal(occurrence.columns, expected_occurrence_cols)
 
 
 class TestCreateEventSheet(unittest.TestCase):
-    def test_creates_a_single_record_per_event_with_correct_dates_and_grab_numbers(self):
+    def setUp(self):
         occurrence = pd.DataFrame({'Station': ['2008 R10-1 1', '2008 R10-1 1', '2008 R10-1 2', '2010 NV9 5'],
                                    'eventID': [10, 10, 11, 12],
                                    'Species': ['A', 'B', 'A', 'A']})
-        stations_report = pd.DataFrame({'Station': ['R10-1', 'NV9']})
-        events = create_event_sheet(occurrence, stations_report)
-        expected = pd.DataFrame({'eventID': [10, 11, 12],
-                                 'Station': ['R10-1', 'R10-1', 'NV9'],
-                                 'eventRemarks': ['grab 1', 'grab 2', 'grab 5'],
-                                 'year': ['2008', '2008', '2010'],
-                                 'eventDate': ['2008-05/2008-06', '2008-05/2008-06', '2010-05/2010-06']})
-        np.testing.assert_array_equal(events.values, expected.values)
+        stations_report = pd.DataFrame({'Station': ['R10-1', 'NV9'], 'WGS84E': [2, 3], 'WGS84N': [60, 61]})
+        self.event = create_event_sheet(occurrence, stations_report)
+
+    def test_it_creates_one_event_per_event_id(self):
+        np.testing.assert_array_equal(self.event['eventID'].values, [10, 11, 12])
+
+    def test_it_separates_station_correctly(self):
+        np.testing.assert_array_equal(self.event['Station'].values, ['R10-1', 'R10-1', 'NV9'])
+
+    def test_it_creates_grab_numbers_in_event_remarks(self):
+        np.testing.assert_array_equal(self.event['eventRemarks'].values, ['grab 1', 'grab 2', 'grab 5'])
+
+    def test_it_adds_a_year_column(self):
+        np.testing.assert_array_equal(self.event['year'].values, ['2008', '2008', '2010'])
+
+    def test_it_creates_a_date_range_for_event_date(self):
+        np.testing.assert_array_equal(self.event['eventDate'].values, ['2008-05/2008-06', '2008-05/2008-06', '2010-05/2010-06'])
+
+    def test_it_merges_station_data(self):
+        np.testing.assert_array_equal(self.event['WGS84E'].values, [2, 2, 3])
+        np.testing.assert_array_equal(self.event['WGS84N'].values, [60, 60, 61])
 
 
 class TestSetLocationData(unittest.TestCase):
@@ -135,6 +152,7 @@ class TestReverseOccurrencePivot(unittest.TestCase):
         expected_result = pd.DataFrame(df_cols)
         np.testing.assert_array_equal(result.values, expected_result.values)
 
+
 class TestAddUUIDs(unittest.TestCase):
     def setUp(self):
         self.result = pd.DataFrame({'Station': ['2008 R10-1 1', '2008 R10-1 1', '2010 NV9 5', '2011 EI12 1'],
@@ -185,7 +203,6 @@ class TestSetTaxonomyData(unittest.TestCase):
 
     def test_it_assigns_family_overrides(self):
         np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'H', 'I'])
-
 
 
 if __name__ == '__main__':
