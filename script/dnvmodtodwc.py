@@ -23,9 +23,18 @@ def add_uuids(occurrence):
 def set_taxonomy_data(occurrence):
     occurrence['basisOfRecord'] = 'MaterialSample'
     occurrence.rename(columns={'Species': 'scientificName', 'Family': 'family'}, inplace=True)
-    occurrence['class'] = ''
-    occurrence.loc[occurrence['scientificName'] == 'Oligochaeta', 'class'] = 'Clitellata'
-    occurrence.loc[occurrence['scientificName'] == 'Oligochaeta juv.', 'class'] = 'Clitellata'
+    occurrence['phylum'] = ''
+    occurrence['class']  = ''
+    occurrence['order'] = ''
+
+    overrides_phylum = {'Crustacea': 'Arthropoda', 'Crustacea juv.': 'Arthropoda', 'Graptolithoidea': 'Hemichordata'}
+    overrides_class = {'Aplacophora': 'Caudofoveata', 'Cirripedia': 'Hexanauplia', 'Copepoda': 'Hexanauplia', 'Hexacorallia': 'Anthozoa', 'Hirudinea': 'Clitellata', 'Hydroidolina': 'Hydrozoa', 'Lepadomorpha': 'Hexanauplia', 'Oligochaeta': 'Clitellata', 'Oligochaeta juv.': 'Clitellata', 'Tectibranchiata': 'Gastropoda', 'Tellinoidea': 'Cardiida', 'Thoracica': 'Hexanauplia'}
+    overrides_order = {'Aeolidioidea': 'Nudibranchia', 'Amphitrite': 'Terebellida', 'Anomura': 'Decapoda', 'Anthuroidea': 'Isopoda', 'Asellota': 'Isopoda', 'Brachyura': 'Decapoda', 'Brachyura juv.': 'Decapoda', 'Caprelloidea': 'Amphipoda', 'Caridea': 'Decapoda', 'Caridea juv.': 'Decapoda', 'Echinidea': 'Camarodonta', 'Echinidea juv.': 'Camarodonta', 'Echiura': 'Echiuroidea', 'Echiurida': 'Echiuroidea', 'Gymnosomata': 'Pteropoda', 'Hyperiidea': 'Amphipoda', 'Pectinoidea': 'Pectinida', 'Pectinoidea juv.': 'Pectinida', 'Terebellomorpha': 'Terebellida', 'Terebellomorpha juv.': 'Terebellida', 'Veneroidea': 'Venerida'}
+    overrides_name = {'Amphitrite': 'Amphitrite Müller, 1771', 'Brachyura juv.': 'Brachyura', 'Caridea juv.': 'Caridea', 'Cirripedia': 'Cirripedia Burmeister, 1834', 'Copepoda': 'Copepoda Milne Edwards, 1840', 'Crustacea': 'Crustacea Brünnich, 1772', 'Crustacea juv.': 'Crustacea Brünnich, 1772', 'Cymothoida': 'Cymothoidae', 'Echinidea': 'Echinidea Kroh & Smith, 2010', 'Echinidea juv.': 'Echinidea Kroh & Smith, 2010', 'Echiurida': 'Echiuridae Quatrefages, 1847', 'Eunereis elittoralis': 'Eunereis elitoralis (Eliason, 1962)', 'Graptolithoidea': 'Graptolithoidea Beklemishev, 1951', 'Gymnosomata': 'Gymnosomata Blainville, 1824', 'Hexacorallia': 'Hexacorallia Haeckel, 1896', 'Hirudinea': 'Hirudinea Savigny, 1822', 'Hydroidolina': 'Hydroidolina Collins, 2000', 'Hyperiidea': 'Hyperiidea H. Milne Edwards, 1830', 'Lepadomorpha': 'Lepadomorpha Pilsbry, 1916', 'Opisthobranchia': 'Opisthobranchia', 'Pectinoidea': 'Pectinoidea Rafinesque, 1815', 'Pectinoidea juv.': 'Pectinoidea Rafinesque, 1815', 'Prosobranchia': 'Prosobranchia', 'Prosobranchia juv.': 'Prosobranchia', 'Tellinoidea': 'Tellinoidea Blainville, 1814', 'Terebellomorpha': 'Terebellomorpha Hatschek, 1893', 'Terebellomorpha juv.': 'Terebellomorpha Hatschek, 1893', 'Thoracica': 'Thoracica Darwin, 1854', 'Tunicata': 'Tunicata Lamarck, 1816', 'Veneroidea': 'Veneroidea Rafinesque, 1815'}
+    occurrence.loc[occurrence['scientificName'].isin(overrides_phylum.keys()), 'phylum'] = occurrence.loc[occurrence['scientificName'].isin(overrides_phylum.keys()), 'scientificName'].replace(overrides_phylum)
+    occurrence.loc[occurrence['scientificName'].isin(overrides_class.keys()), 'class'] = occurrence.loc[occurrence['scientificName'].isin(overrides_class.keys()), 'scientificName'].replace(overrides_class)
+    occurrence.loc[occurrence['scientificName'].isin(overrides_order.keys()), 'order'] = occurrence.loc[occurrence['scientificName'].isin(overrides_order.keys()), 'scientificName'].replace(overrides_order)
+    occurrence.loc[occurrence['scientificName'].isin(overrides_name.keys()), 'scientificName'] = occurrence.loc[occurrence['scientificName'].isin(overrides_name.keys()), 'scientificName'].replace(overrides_name)
     occurrence.loc[occurrence['scientificName'] == 'Grania', 'family'] = 'Enchytraeidae'
 
 def create_event_sheet(occurrence, stations_report):

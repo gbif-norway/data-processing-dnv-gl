@@ -27,7 +27,7 @@ class TestGetEventAndOccurrence(unittest.TestCase):
         event, occurrence = get_event_and_occurrence(pivot_data, stations_report, 'UK Shelf')
         expected_event_cols = ['eventID', 'Station', 'eventRemarks', 'year', 'eventDate', 'locality', 'minimumDepthInMeters', 'verbatimLongitude', 'verbatimLatitude', 'decimalLongitude', 'decimalLatitude', 'waterBody', 'geodeticDatum', 'locationRemarks', 'maximumDepthInMeters', 'verbatimCoordinateSystem', 'verbatimSrS']
         np.testing.assert_array_equal(event.columns, expected_event_cols)
-        expected_occurrence_cols = ['scientificName', 'family', 'Station', 'individualCount', 'occurrenceID', 'eventID', 'basisOfRecord', 'class']
+        expected_occurrence_cols = ['scientificName', 'family', 'Station', 'individualCount', 'occurrenceID', 'eventID', 'basisOfRecord', 'phylum', 'class', 'order']
         np.testing.assert_array_equal(occurrence.columns, expected_occurrence_cols)
 
 
@@ -68,8 +68,8 @@ class TestSetLocationData(unittest.TestCase):
                               'Installation': ['Jeba', 'Jeba', 'Jeba'],
                               'WGS84N': [70, None, None],
                               'WGS84E': [20, None, None],
-                              'UTM33N': [8000000, 8220514.84, 8220612.92],
-                              'UTM33E': [730000, 795102.30, 795082.28],
+                              'UTM33N': [8000000, 8086084.508, 8220612.92],
+                              'UTM33E': [730000, 829052.86, 795082.28],
                               'UTM31E': '', 'UTM31N': '', 'UTM32E': '', 'UTM32N': '', 'UTM34E': '', 'UTM34N': '',
                               'UTM35E': '', 'UTM35N': '', 'UTM36E': '', 'UTM36N': '', 'ED50E': '', 'ED50N': ''
                               })
@@ -94,15 +94,15 @@ class TestSetLocationData(unittest.TestCase):
         np.testing.assert_array_equal(self.event['locality'].values, ['Jeba', 'Jeba', 'Jeba'])
 
     def test_it_assigns_correct_verbatim_data(self):
-        np.testing.assert_array_equal(self.event['verbatimLatitude'].values, [8000000, 8220514.84, 8220612.92])
-        np.testing.assert_array_equal(self.event['verbatimLongitude'].values, [730000, 795102.30, 795082.28])
+        np.testing.assert_array_equal(self.event['verbatimLatitude'].values, [8000000, 8086084.508, 8220612.92])
+        np.testing.assert_array_equal(self.event['verbatimLongitude'].values, [730000, 829052.86, 795082.28])
         np.testing.assert_array_equal(self.event['verbatimSrS'].values, ['EPSG:32633', 'EPSG:32633', 'EPSG:32633'])
         np.testing.assert_array_equal(self.event['verbatimCoordinateSystem'].values, ['UTM', 'UTM', 'UTM'])
 
     def test_conversion_from_utm(self):
         # These tests fail
-        #np.testing.assert_array_equal(self.event['decimalLatitude'].values, [70, 73.86192111, 73.86281664])
-        #np.testing.assert_array_equal(self.event['decimalLongitude'].values, [20, 24.5469315, 24.54679897])
+        #np.testing.assert_array_equal(self.event['decimalLatitude'].values, [70, 72.62495717, 73.86281664])
+        #np.testing.assert_array_equal(self.event['decimalLongitude'].values, [20, 24.9108405, 24.54679897])
         pass
 
     def test_does_not_break_if_no_conversion_needed(self):
@@ -186,24 +186,38 @@ class TestAddUUIDs(unittest.TestCase):
 
 
 class TestSetTaxonomyData(unittest.TestCase):
-    def setUp(self):
-        self.occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Oligochaeta juv.', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'H', 'I']})
-        set_taxonomy_data(self.occurrences)
-
     def test_it_sets_basis_of_record(self):
-        np.testing.assert_array_equal(self.occurrences['basisOfRecord'], ['MaterialSample'] * 6)
+        occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Oligochaeta juv.', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'H', 'I']})
+        set_taxonomy_data(occurrences)
+        np.testing.assert_array_equal(occurrences['basisOfRecord'], ['MaterialSample'] * 6)
 
     def test_it_renames_columns_and_adds_class_column(self):
-        self.assertTrue('scientificName' in self.occurrences.columns and 'species' not in self.occurrences.columns)
-        self.assertTrue('family' in self.occurrences.columns and 'Family' not in self.occurrences.columns)
-        self.assertTrue('class' in self.occurrences.columns)
+        occurrences = pd.DataFrame({'Species': ['A', 'Grania', 'Grania', 'Oligochaeta', 'Oligochaeta juv.', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'H', 'I']})
+        set_taxonomy_data(occurrences)
+        self.assertTrue('scientificName' in occurrences.columns and 'species' not in occurrences.columns)
+        self.assertTrue('family' in occurrences.columns and 'Family' not in occurrences.columns)
+        self.assertTrue('class' in occurrences.columns)
+
+    def test_it_assigns_phylum_overrides(self):
+        occurrences = pd.DataFrame({'Species': ['A', 'Graptolithoidea', 'Crustacea juv.', 'Crustacea', 'Crustacea juv.', 'Z']})
+        set_taxonomy_data(occurrences)
+        np.testing.assert_array_equal(occurrences['phylum'], ['', 'Hemichordata', 'Arthropoda', 'Arthropoda', 'Arthropoda', ''])
+
 
     def test_it_assigns_class_overrides(self):
-        np.testing.assert_array_equal(self.occurrences['class'], ['', '', '', 'Clitellata', 'Clitellata', ''])
+        occurrences = pd.DataFrame({'Species': ['A', 'Aplacophora', 'Thoracica', 'Oligochaeta juv.', 'Aplacophora', 'Z']})
+        set_taxonomy_data(occurrences)
+        np.testing.assert_array_equal(occurrences['class'], ['', 'Caudofoveata', 'Hexanauplia', 'Clitellata', 'Caudofoveata', ''])
 
     def test_it_assigns_family_overrides(self):
-        np.testing.assert_array_equal(self.occurrences['family'], ['F', 'Enchytraeidae', 'Enchytraeidae', 'H', 'H', 'I'])
+        occurrences = pd.DataFrame({'Species': ['A', 'B', 'Grania', 'C', 'Grania', 'Z'], 'Family': ['F', 'G', 'H', 'H', 'H', 'I']})
+        set_taxonomy_data(occurrences)
+        np.testing.assert_array_equal(occurrences['family'], ['F', 'G', 'Enchytraeidae', 'H', 'Enchytraeidae', 'I'])
 
+    def test_it_assigns_name_overrides(self):
+        occurrences = pd.DataFrame({'Species': ['A', 'B', 'Amphitrite', 'C', 'Veneroidea', 'Z']})
+        set_taxonomy_data(occurrences)
+        np.testing.assert_array_equal(occurrences['scientificName'], ['A', 'B', 'Amphitrite Müller, 1771', 'C', 'Veneroidea Rafinesque, 1815', 'Z'])
 
 if __name__ == '__main__':
     unittest.main()
