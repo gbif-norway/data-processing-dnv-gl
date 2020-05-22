@@ -215,9 +215,9 @@ class TestSetTaxonomyData(unittest.TestCase):
         np.testing.assert_array_equal(occurrences['family'], ['F', 'G', 'Enchytraeidae', 'H', 'Enchytraeidae', 'I'])
 
     def test_it_assigns_name_overrides(self):
-        occurrences = pd.DataFrame({'Species': ['A', 'B', 'Amphitrite', 'C', 'Veneroidea', 'Z']})
+        occurrences = pd.DataFrame({'Species': ['A', 'B', 'Amphitrite', 'C', 'Veneroidea', 'Z', 'Gammaridea']})
         set_taxonomy_data(occurrences)
-        np.testing.assert_array_equal(occurrences['scientificName'], ['A', 'B', 'Amphitrite Müller, 1771', 'C', 'Veneroidea Rafinesque, 1815', 'Z'])
+        np.testing.assert_array_equal(occurrences['scientificName'], ['A', 'B', 'Amphitrite Müller, 1771', 'C', 'Veneroidea Rafinesque, 1815', 'Z', 'Amphipoda'])
 
 if __name__ == '__main__':
     unittest.main()
