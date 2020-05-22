@@ -12,7 +12,11 @@ for current_sea in seas:
     event, occurrence = get_event_and_occurrence(pivot_data, stations_report, current_sea)
     occurrence_dfs.append(occurrence)
     event_dfs.append(event)
-    event.to_csv('result_files/' + file_sea_name + '_event.csv')
-    occurrence.to_csv('result_files/' + file_sea_name + '_occurrence.csv')
+    #event.to_csv('result_files/' + file_sea_name + '_event.csv')
+    #occurrence.to_csv('result_files/' + file_sea_name + '_occurrence.csv')
 
+events = pd.concat(event_dfs)
+occurrences = pd.concat(occurrence_dfs)
+events.to_csv('result_files/dnv-events.csv')
+occurrences.to_csv('result_files/dnv-occurrences.csv')
 import pdb; pdb.set_trace()
